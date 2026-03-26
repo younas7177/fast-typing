@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Typing Test</title>
+<style>
+body {font-family: Arial; background:#0f172a; color:white; text-align:center;}
+.container {max-width:800px; margin:auto; background:#1e293b; padding:20px; border-radius:10px;}
+#text {font-size:20px; margin:20px 0;}
+.correct{color:lightgreen;} .wrong{color:red;}
+textarea{width:100%; height:120px; font-size:18px;}
+button{margin:5px; padding:10px; border:none; border-radius:5px; cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🔥 Ultimate Typing Test</h1>
+
+<div>
+<button onclick="setTime(30)">30s</button>
+<button onclick="setTime(60)">60s</button>
+<button onclick="setTime(120)">120s</button>
+</div>
+
+<div>
+<button onclick="setMode('easy')">Easy</button>
+<button onclick="setMode('medium')">Medium</button>
+<button onclick="setMode('hard')">Hard</button>
+<button onclick="setMode('urdu')">Urdu 🇵🇰</button>
+</div>
+
+<p id="timer">Time: 60</p>
+<div id="text"></div>
+<textarea id="input" placeholder="Start typing..."></textarea>
+
+<h3 id="result"></h3>
+<h3>🏆 Leaderboard</h3>
+<ul id="leaderboard"></ul>
+</div>
+
+<script>
+let texts = {
+ easy:"Typing is fun and easy.",
+ medium:"Typing fast requires practice and focus every day.",
+ hard:"Professional typists maintain high speed with excellent accuracy and consistency.",
+ urdu:"پاکستان میں ٹائپنگ سیکھنا بہت مفید ہے"
+};
+
+let currentText="";
+let time=60;
+let timer;
+let start=false;
+let totalTime=60;
+
+function setMode(mode){
+ currentText=texts[mode];
+ renderText();
+ reset();
+}
+
+function setTime(t){
+ time=t; totalTime=t;
+ document.getElementById('timer').innerText="Time: "+time;
+ reset();
+}
+
+function renderText(){
+ let html="";
+ currentText.split("").forEach(c=> html+=`<span>${c}</span>`);
+ document.getElementById('text').innerHTML=html;
+}
+
+function reset(){
+ clearInterval(timer);
+ document.getElementById('input').value="";
+ document.getElementById('result').innerText="";
+ start=false;
+}
+
+function startTimer(){
+ timer=setInterval(()=>{
+ time--;
+ document.getElementById('timer').innerText="Time: "+time;
+ if(time<=0) finish();
+ },1000);
+}
+
+function finish(){
+ clearInterval(timer);
+ let typed=input.value;
+ let words=typed.split(" ").length;
+ let wpm=Math.round((words/totalTime)*60);
+
+ let correct=0;
+ currentText.split("").forEach((c,i)=>{
+  if(typed[i]===c) correct++;
+ });
+ let accuracy=Math.round((correct/currentText.length)*100);
+
+ document.getElementById('result').innerText=`WPM: ${wpm} | Accuracy: ${accuracy}%`;
+ saveScore(wpm);
+}
+
+function saveScore(score){
+ let scores=JSON.parse(localStorage.getItem('scores'))||[];
+ scores.push(score);
+ scores.sort((a,b)=>b-a);
+ scores=scores.slice(0,5);
+ localStorage.setItem('scores',JSON.stringify(scores));
+ displayScores();
+}
+
+function displayScores(){
+ let scores=JSON.parse(localStorage.getItem('scores'))||[];
+ let list="";
+ scores.forEach(s=> list+=`<li>${s} WPM</li>`);
+ document.getElementById('leaderboard').innerHTML=list;
+}
+
+let input=document.getElementById('input');
+input.addEventListener('input',()=>{
+ if(!start){startTimer(); start=true;}
+ let typed=input.value;
+ let spans=document.querySelectorAll('#text span');
+ spans.forEach((span,i)=>{
+  let char=typed[i];
+  if(char==null){span.classList.remove('correct','wrong');}
+  else if(char===span.innerText){span.classList.add('correct'); span.classList.remove('wrong');}
+  else{span.classList.add('wrong'); span.classList.remove('correct');}
+ });
+});
+
+setMode('easy');
+setTime(60);
+displayScores();
+</script>
+</body>
+</html>
